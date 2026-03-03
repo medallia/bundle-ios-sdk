@@ -1,0 +1,21 @@
+{
+  "ABIRoot": {
+    "kind": "Root",
+    "name": "medallia_bundle_ios_sdk",
+    "printedName": "medallia_bundle_ios_sdk",
+    "children": [
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "medallia_bundle_ios_sdk",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      }
+    ],
+    "json_format_version": 8
+  },
+  "ConstValues": []
+}
