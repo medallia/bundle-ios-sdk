@@ -1,0 +1,66 @@
+name: Tag and Release on PR Merge
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - 'v*' # Only run on PRs from branches starting with 'v'
+jobs:
+  tag-and-release:
+    runs-on: ubuntu-latest
+    # This job only runs for merged PRs on branches starting with 'v'
+    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'v')
+    steps:
+      - name: Set Tag and Version Variables
+        id: variables
+        run: |
+          BRANCH_NAME="${{ github.head_ref }}"
+          # The tag name will include the 'v' prefix, e.g., v3.0.0
+          echo "tag_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+          # The version number for the changelog, without the 'v' prefix, e.g., 3.0.0
+          echo "version_number=${BRANCH_NAME#v}" >> $GITHUB_OUTPUT
+
+      - uses: actions/checkout@v2
+
+      - name: Get Release Notes
+        id: get_release_notes
+        # Get changelog for the specific version. Assumes changelog uses version numbers without 'v' prefix.
+        run: |
+          NOTES="$(sed -e "/^#### Version ${{ steps.variables.outputs.version_number }}/,/^#### /! d" -e "/^#### .*/d" -e 's/(\[.*].*//' -e 's/\*\*.*:\*\*//' CHANGELOG.md)"
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Tag Release
+        id: tag_release
+        uses: tvdias/github-tagger@v0.0.2
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          tag: "${{ steps.variables.outputs.tag_name }}"
+          commit-sha: "${{ github.event.pull_request.merge_commit_sha }}"
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ steps.variables.outputs.tag_name }}
+          name: ${{ steps.variables.outputs.tag_name }}
+          body: ${{ steps.get_release_notes.outputs.notes }}
+          draft: false
+          prerelease: false
+
+  deploy-to-cocoapods:
+    # This job will only run after a tag and release have been successfully created.
+    needs: tag-and-release
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Cocoapods
+      run: gem install cocoapods
+
+    - uses: michaelhenry/deploy-to-cocoapods-github-action@1.0.10
+      env:
+        COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}

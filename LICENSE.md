@@ -6,8 +6,8 @@
 
 ## 2. Accepting this License Agreement
 
-2.1 BY DOWNLOADING, INSTALLING, OR OTHERWISE ACCESSING OR USING THE SDK, YOU AGREE THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY THE AGREEMENT. IF YOU DO NOT AGREE, YOU MAY NOT USE THE SDK. 
-   
+2.1 BY DOWNLOADING, INSTALLING, OR OTHERWISE ACCESSING OR USING THE SDK, YOU AGREE THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY THE AGREEMENT. IF YOU DO NOT AGREE, YOU MAY NOT USE THE SDK.
+
 2.2 You may not use the SDK and may not accept this Agreement if you are a person barred from receiving the SDK under the laws of the United States or other countries, including the country in which you are resident or from which you use the SDK.
 
 2.3 If you are agreeing to be bound by this Agreement on behalf of your employer or other entity, you represent and warrant that you have full legal authority to bind your employer or such entity to this Agreement. If you do not have the requisite authority, you may not accept this Agreement or use the SDK on behalf of your employer or other entity.
