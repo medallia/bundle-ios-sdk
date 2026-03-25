@@ -10,4 +10,4 @@ To get started with the Medallia Digital Experience Analytics, please follow our
 To get started with the  Medallia Digital Feedback, please follow our [online documentation](https://docs-assets.medallia.com/digital/docs-v2/mobile-sdk-docs/index.html#pages/getting-started/quick-start/quick-start-ios/getting-started-ios.html).
 
 ## Questions or need help
-For questions, please submit a support ticket [here](https://help.medallia.com).
+For questions, please submit a support ticket [here](https://help.medallia.com). 
