@@ -10,7 +10,9 @@ jobs:
   tag-and-release:
     runs-on: ubuntu-latest
     # This job only runs for merged PRs on branches starting with 'v'
-    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'v')
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      (github.event.pull_request.merged == true && startsWith(github.head_ref, 'v'))
     steps:
       - name: Set Tag and Version Variables
         id: variables
