@@ -3,7 +3,9 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - 'v*' # Only run on PRs from branches starting with 'v'
+      - main
+  # This enables the manual "Run workflow" button
+  workflow_dispatch:
 jobs:
   tag-and-release:
     runs-on: ubuntu-latest
