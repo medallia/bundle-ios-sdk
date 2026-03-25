@@ -10,7 +10,7 @@ Pod::Spec.new do |spec|
     spec.authors = {
         'Medallia' => 'cocoapods@medallia.com'
     }
-    spec.source                   = { :git => 'https://github.com/medallia/bundle-ios-sdk.git', :tag => '1.0.0-alpha.9' }
+    spec.source                   = { :git => 'https://github.com/medallia/bundle-ios-sdk.git', :tag => '1.0.0-alpha.10' }
     spec.ios.deployment_target = '15.0'
     spec.swift_versions = ['5.0', '5.9', '6.0']
     spec.subspec 'DXA' do |dx|
