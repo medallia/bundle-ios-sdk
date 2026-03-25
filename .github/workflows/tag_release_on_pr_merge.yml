@@ -1,61 +1,73 @@
 name: Tag and Release on PR Merge
+
 on:
   pull_request:
     types: [closed]
     branches:
       - main
-  # This enables the manual "Run workflow" button
+  # Keeps the manual button in case you ever need to force a release
   workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'Version tag (e.g., v3.0.0)'
+        required: true
+        type: string
+
+# It's a good practice (and often mandatory nowadays) to grant explicit permissions to the token
+permissions:
+  contents: write
+
 jobs:
   tag-and-release:
     runs-on: ubuntu-latest
-    # This job only runs for merged PRs on branches starting with 'v'
+    # Runs if triggered manually, or if the PR is merged and the source branch starts with 'v'
     if: |
       github.event_name == 'workflow_dispatch' || 
       (github.event.pull_request.merged == true && startsWith(github.head_ref, 'v'))
+    
     steps:
-      - name: Set Tag and Version Variables
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Tag Variable
         id: variables
         run: |
-          BRANCH_NAME="${{ github.head_ref }}"
-          # The tag name will include the 'v' prefix, e.g., v3.0.0
-          echo "tag_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
-          # The version number for the changelog, without the 'v' prefix, e.g., 3.0.0
-          echo "version_number=${BRANCH_NAME#v}" >> $GITHUB_OUTPUT
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "tag_name=${{ github.event.inputs.version_tag }}" >> $GITHUB_OUTPUT
+          else
+            # Extracts the branch name (e.g., v1.2)
+            echo "tag_name=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+          fi
 
-      - uses: actions/checkout@v2
-
-      - name: Tag Release
-        id: tag_release
-        uses: tvdias/github-tagger@v0.0.2
-        with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
-          tag: "${{ steps.variables.outputs.tag_name }}"
-          commit-sha: "${{ github.event.pull_request.merge_commit_sha }}"
-
-      - name: Create Release
+      # softprops/action-gh-release automatically creates the tag if it doesn't exist,
+      # so we save a step (and an extra third-party action).
+      - name: Create Release and Tag
         id: create_release
-        uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.variables.outputs.tag_name }}
-          name: ${{ steps.variables.outputs.tag_name }}
+          name: Release ${{ steps.variables.outputs.tag_name }}
           body: "https://developer.medallia.com"
           draft: false
           prerelease: false
+          # Target the tag to the merge commit
+          target_commitish: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
 
   deploy-to-cocoapods:
-    # This job will only run after a tag and release have been successfully created.
+    # This job ONLY runs if the previous one finished successfully
     needs: tag-and-release
-    runs-on: macOS-latest
-
+    runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Install Cocoapods
-      run: gem install cocoapods
-
-    - uses: michaelhenry/deploy-to-cocoapods-github-action@1.0.10
-      env:
-        COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+      # Running CocoaPods natively is usually less prone to failure 
+      # than relying on third-party actions that might become outdated.
+      - name: Deploy to Cocoapods
+        env:
+          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+        run: |
+          sudo gem install cocoapods
+          # If you have a specific .podspec file, you can change this command to:
+          # pod trunk push YourLibrary.podspec --allow-warnings
+          pod trunk push --allow-warnings
