@@ -83,5 +83,5 @@ jobs:
           COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
         run: |
           # If you have a specific .podspec file, you can change this command to:
-          # pod trunk push YourLibrary.podspec --allow-warnings --skip-tests --skip-import-validation
+          # pod trunk push --allow-warnings --sources='https://cdn.cocoapods.org,https://repository.medallia.com/artifactory/api/pods/public-cocoapods'
           pod trunk push --allow-warnings --sources='https://cdn.cocoapods.org,https://repository.medallia.com/artifactory/api/pods/public-cocoapods'
