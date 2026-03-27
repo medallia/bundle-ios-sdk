@@ -33,11 +33,15 @@ jobs:
         id: variables
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "tag_name=${{ github.event.inputs.version_tag }}" >> $GITHUB_OUTPUT
+            ORIGINAL_TAG="${{ github.event.inputs.version_tag }}"
           else
-            # Extracts the branch name (e.g., v1.2)
-            echo "tag_name=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+            ORIGINAL_TAG="${{ github.head_ref }}"
           fi
+
+          # Remove leading 'v' if present
+          UPDATED_TAG="${ORIGINAL_TAG#v}"
+
+          echo "tag_name=$UPDATED_TAG" >> $GITHUB_OUTPUT
 
       # softprops/action-gh-release automatically creates the tag if it doesn't exist,
       # so we save a step (and an extra third-party action).
@@ -61,13 +65,23 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods
+
+      - name: Lint Podspec with Private Repo
+        run: |
+          pod spec lint \
+            --sources='https://cdn.cocoapods.org,https://repository.medallia.com/artifactory/api/pods/public-cocoapods' \
+            --allow-warnings \
+            --verbose
+
       # Running CocoaPods natively is usually less prone to failure 
       # than relying on third-party actions that might become outdated.
       - name: Deploy to Cocoapods
         env:
           COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
         run: |
-          sudo gem install cocoapods
           # If you have a specific .podspec file, you can change this command to:
-          # pod trunk push YourLibrary.podspec --allow-warnings
-          pod trunk push --allow-warnings
+          # pod trunk push YourLibrary.podspec --allow-warnings --skip-tests --skip-import-validation
+          pod trunk push --allow-warnings --skip-tests --skip-import-validation
